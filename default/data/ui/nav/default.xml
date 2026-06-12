@@ -1,4 +1,4 @@
-# DevLens — Splunk App Navigation
+<!-- DevLens Splunk App Navigation -->
 <nav>
   <view name="devlens" default="true" />
 </nav>

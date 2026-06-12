@@ -1,5 +1,5 @@
 <form script="devlens_chat.js" stylesheet="devlens.css" theme="dark" version="1.1">
-  <label>DevLens AI — Agentic Observability</label>
+  <label>DevLens AI - Agentic Observability</label>
   <description>Ask questions about your application in plain English. DevLens investigates your Splunk data and returns AI-powered root cause analysis.</description>
 
   <!-- ================================================================
