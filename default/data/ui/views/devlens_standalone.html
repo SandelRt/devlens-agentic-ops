@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<!--
+DevLens — Agentic Observability Chat Dashboard
+Embedded in Splunk via a simple XML dashboard + iframe, or served as a
+standalone panel using Splunk's Dashboard Framework.
+
+This is the standalone HTML version for development/demo purposes.
+In production, the JS/CSS are loaded from appserver/static/ within Splunk.
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DevLens — Agentic Observability for Developers</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../appserver/static/css/devlens.css" />
+</head>
+<body>
+
+  <!-- Top nav bar -->
+  <header class="dl-nav">
+    <div class="dl-nav-brand">
+      <div class="dl-logo-icon">🔭</div>
+      <span class="dl-logo-text">DevLens <span class="dl-badge">AI</span></span>
+    </div>
+    <div class="dl-nav-meta">
+      <div class="dl-status-pill" id="statusPill">
+        <span class="dl-status-dot online"></span>
+        <span>Splunk Connected</span>
+      </div>
+      <div class="dl-nav-links">
+        <a href="#" class="dl-nav-link" title="MCP Tools">MCP</a>
+        <a href="#" class="dl-nav-link" title="Saved Searches">Alerts</a>
+        <a href="#" class="dl-nav-link" title="Settings">⚙</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="dl-layout">
+
+    <!-- Sidebar: Quick metrics + suggested questions -->
+    <aside class="dl-sidebar">
+
+      <section class="dl-sidebar-section">
+        <h3 class="dl-sidebar-title">Service Health</h3>
+        <div class="dl-health-grid" id="serviceHealthGrid">
+          <div class="dl-health-card healthy">
+            <div class="dl-health-dot"></div>
+            <div class="dl-health-info">
+              <span class="dl-health-name">checkout-api</span>
+              <span class="dl-health-score">99.2%</span>
+            </div>
+          </div>
+          <div class="dl-health-card degraded">
+            <div class="dl-health-dot"></div>
+            <div class="dl-health-info">
+              <span class="dl-health-name">payment-svc</span>
+              <span class="dl-health-score">94.1%</span>
+            </div>
+          </div>
+          <div class="dl-health-card healthy">
+            <div class="dl-health-dot"></div>
+            <div class="dl-health-info">
+              <span class="dl-health-name">user-auth</span>
+              <span class="dl-health-score">99.8%</span>
+            </div>
+          </div>
+          <div class="dl-health-card critical">
+            <div class="dl-health-dot"></div>
+            <div class="dl-health-info">
+              <span class="dl-health-name">inventory-api</span>
+              <span class="dl-health-score">87.3%</span>
+            </div>
+          </div>
+          <div class="dl-health-card healthy">
+            <div class="dl-health-dot"></div>
+            <div class="dl-health-info">
+              <span class="dl-health-name">search-svc</span>
+              <span class="dl-health-score">99.5%</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="dl-sidebar-section">
+        <h3 class="dl-sidebar-title">Ask DevLens</h3>
+        <div class="dl-suggestions" id="suggestionsContainer">
+          <button class="dl-suggestion-chip" onclick="prefillQuestion(this)">
+            Why are my APIs returning 500s?
+          </button>
+          <button class="dl-suggestion-chip" onclick="prefillQuestion(this)">
+            Did my last deploy cause a regression?
+          </button>
+          <button class="dl-suggestion-chip" onclick="prefillQuestion(this)">
+            What's causing the latency spike in checkout?
+          </button>
+          <button class="dl-suggestion-chip" onclick="prefillQuestion(this)">
+            Which endpoints are slowest right now?
+          </button>
+          <button class="dl-suggestion-chip" onclick="prefillQuestion(this)">
+            How many users are affected by current errors?
+          </button>
+          <button class="dl-suggestion-chip" onclick="prefillQuestion(this)">
+            Show me resource saturation on production hosts
+          </button>
+        </div>
+      </section>
+
+      <section class="dl-sidebar-section">
+        <h3 class="dl-sidebar-title">Time Range</h3>
+        <div class="dl-time-selector">
+          <button class="dl-time-btn" data-range="-15m">15m</button>
+          <button class="dl-time-btn active" data-range="-1h">1h</button>
+          <button class="dl-time-btn" data-range="-6h">6h</button>
+          <button class="dl-time-btn" data-range="-24h">24h</button>
+          <button class="dl-time-btn" data-range="-7d">7d</button>
+        </div>
+      </section>
+
+    </aside>
+
+    <!-- Main chat panel -->
+    <main class="dl-main">
+
+      <!-- Empty state (shown before first conversation) -->
+      <div class="dl-empty-state" id="emptyState">
+        <div class="dl-empty-icon">🔭</div>
+        <h2 class="dl-empty-title">Ask DevLens anything</h2>
+        <p class="dl-empty-subtitle">
+          I'll investigate your Splunk data using AI and give you a root cause analysis —
+          no SPL knowledge required.
+        </p>
+        <div class="dl-empty-features">
+          <div class="dl-feature">
+            <span class="dl-feature-icon">⚡</span>
+            <span>Agentic multi-step investigation</span>
+          </div>
+          <div class="dl-feature">
+            <span class="dl-feature-icon">🤖</span>
+            <span>Powered by Splunk Hosted Models</span>
+          </div>
+          <div class="dl-feature">
+            <span class="dl-feature-icon">🔌</span>
+            <span>MCP Server integration</span>
+          </div>
+          <div class="dl-feature">
+            <span class="dl-feature-icon">📊</span>
+            <span>Auto-generated SPL queries</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chat message feed -->
+      <div class="dl-chat-feed" id="chatFeed" style="display:none;"></div>
+
+      <!-- Input area -->
+      <div class="dl-input-area">
+        <div class="dl-input-wrapper">
+          <textarea
+            id="questionInput"
+            class="dl-input"
+            placeholder="Ask about your application health... (e.g. 'Why are my APIs slow?')"
+            rows="1"
+            autofocus
+          ></textarea>
+          <div class="dl-input-controls">
+            <span class="dl-input-hint" id="inputHint">Press Enter to investigate</span>
+            <button class="dl-send-btn" id="sendBtn" onclick="investigate()">
+              <span class="dl-send-icon">▶</span>
+              <span>Investigate</span>
+            </button>
+          </div>
+        </div>
+        <div class="dl-input-meta">
+          <span class="dl-powered-by">Powered by <strong>Splunk Hosted Models</strong> + <strong>MCP Server</strong></span>
+          <span class="dl-index-label">Index: <code id="currentIndex">*</code></span>
+        </div>
+      </div>
+
+    </main>
+
+  </div>
+
+  <!-- Templates for dynamic message rendering -->
+  <template id="userMsgTemplate">
+    <div class="dl-msg dl-msg-user">
+      <div class="dl-msg-avatar dl-avatar-user">You</div>
+      <div class="dl-msg-content">
+        <div class="dl-msg-text"></div>
+        <div class="dl-msg-meta"></div>
+      </div>
+    </div>
+  </template>
+
+  <template id="agentMsgTemplate">
+    <div class="dl-msg dl-msg-agent">
+      <div class="dl-msg-avatar dl-avatar-agent">🔭</div>
+      <div class="dl-msg-content">
+        <div class="dl-msg-text"></div>
+        <div class="dl-msg-evidence" style="display:none;"></div>
+        <div class="dl-msg-queries" style="display:none;"></div>
+        <div class="dl-msg-recommendations" style="display:none;"></div>
+        <div class="dl-msg-monitor-spl" style="display:none;"></div>
+        <div class="dl-msg-meta"></div>
+      </div>
+    </div>
+  </template>
+
+  <template id="thinkingTemplate">
+    <div class="dl-msg dl-msg-agent dl-msg-thinking" id="thinkingMsg">
+      <div class="dl-msg-avatar dl-avatar-agent">🔭</div>
+      <div class="dl-msg-content">
+        <div class="dl-thinking-dots">
+          <div class="dl-thinking-steps" id="thinkingSteps">
+            <div class="dl-thinking-step active" id="step-plan">🧠 Planning investigation...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <script src="../appserver/static/js/devlens_chat.js"></script>
+</body>
+</html>

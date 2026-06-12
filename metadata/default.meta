@@ -1,0 +1,6 @@
+[default]
+access = read : [ * ], write : [ admin, power ]
+
+[lookups]
+access = read : [ * ], write : [ admin, power ]
+export = system

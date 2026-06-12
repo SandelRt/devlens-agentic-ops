@@ -1,0 +1,43 @@
+# .gitignore for DevLens Splunk App
+
+# Generated demo data (large CSVs — load from the generator)
+/data/
+*.csv
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+.env
+.venv
+venv/
+env/
+
+# Splunk local overrides (never commit — may contain credentials)
+local/
+lookups/*.csv
+metadata/local.meta
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*.DS_Store
+Thumbs.db
+
+# Packaged app archive
+*.tar.gz
+*.spl
+
+# Secrets
+.env
+*.key
+secrets.conf
+passwords.conf

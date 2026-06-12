@@ -1,0 +1,262 @@
+<form script="devlens_chat.js" stylesheet="devlens.css" theme="dark" version="1.1">
+  <label>DevLens AI — Agentic Observability</label>
+  <description>Ask questions about your application in plain English. DevLens investigates your Splunk data and returns AI-powered root cause analysis.</description>
+
+  <!-- ================================================================
+       DevLens Dashboard
+       Splunk Simple XML + custom JS/CSS
+       The main interaction is in the #devlens-chat-panel div,
+       driven by devlens_chat.js (loaded via script="" above).
+       The panels below provide supporting observability context.
+  ================================================================ -->
+
+  <row>
+    <panel>
+      <html>
+        <div id="devlens-root">
+
+          <!-- Top bar -->
+          <div class="dl-nav">
+            <div class="dl-nav-brand">
+              <span class="dl-logo-icon">&#128301;</span>
+              <span class="dl-logo-text">DevLens <span class="dl-badge">AI</span></span>
+            </div>
+            <div class="dl-nav-meta">
+              <div class="dl-status-pill" id="statusPill">
+                <span class="dl-status-dot online"></span>
+                <span>Splunk Connected</span>
+              </div>
+              <div class="dl-nav-right">
+                <span id="iterationCounter" class="dl-iter-count" style="display:none">
+                  <span id="iterCount">0</span> iteration(s) last run
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Main layout -->
+          <div class="dl-layout">
+
+            <!-- Sidebar -->
+            <aside class="dl-sidebar">
+
+              <section class="dl-sidebar-section">
+                <h3 class="dl-sidebar-title">Service Health</h3>
+                <div class="dl-health-grid" id="serviceHealthGrid">
+                  <!-- Populated by JS from Splunk search results -->
+                  <div class="dl-health-loading">Loading...</div>
+                </div>
+              </section>
+
+              <section class="dl-sidebar-section">
+                <h3 class="dl-sidebar-title">Try asking...</h3>
+                <div class="dl-suggestions">
+                  <button class="dl-suggestion-chip" onclick="prefillQuestion(this)">Why are my APIs returning 500s?</button>
+                  <button class="dl-suggestion-chip" onclick="prefillQuestion(this)">Did my last deploy cause a regression?</button>
+                  <button class="dl-suggestion-chip" onclick="prefillQuestion(this)">What's causing the latency spike?</button>
+                  <button class="dl-suggestion-chip" onclick="prefillQuestion(this)">Which endpoints are slowest right now?</button>
+                  <button class="dl-suggestion-chip" onclick="prefillQuestion(this)">How many users are impacted by current errors?</button>
+                </div>
+              </section>
+
+              <section class="dl-sidebar-section">
+                <h3 class="dl-sidebar-title">Time Range</h3>
+                <div class="dl-time-selector">
+                  <button class="dl-time-btn" data-range="-15m">15m</button>
+                  <button class="dl-time-btn active" data-range="-1h">1h</button>
+                  <button class="dl-time-btn" data-range="-6h">6h</button>
+                  <button class="dl-time-btn" data-range="-24h">24h</button>
+                </div>
+              </section>
+
+              <section class="dl-sidebar-section">
+                <h3 class="dl-sidebar-title">Index</h3>
+                <select id="indexSelector" class="dl-index-select" onchange="updateIndex(this.value)">
+                  <option value="*">All indexes (*)</option>
+                  <option value="main">main</option>
+                  <option value="metrics">metrics</option>
+                </select>
+              </section>
+
+            </aside>
+
+            <!-- Chat panel -->
+            <main class="dl-main">
+              <div class="dl-empty-state" id="emptyState">
+                <div class="dl-empty-icon">&#128301;</div>
+                <h2 class="dl-empty-title">Ask DevLens anything</h2>
+                <p class="dl-empty-subtitle">I investigate your Splunk data autonomously using AI. No SPL required.</p>
+                <div class="dl-empty-features">
+                  <div class="dl-feature"><span class="dl-feature-icon">&#9889;</span><span>Agentic multi-step investigation</span></div>
+                  <div class="dl-feature"><span class="dl-feature-icon">&#129302;</span><span>Splunk Hosted Models (Cisco AI)</span></div>
+                  <div class="dl-feature"><span class="dl-feature-icon">&#128268;</span><span>MCP Server — 5 registered tools</span></div>
+                  <div class="dl-feature"><span class="dl-feature-icon">&#128202;</span><span>Auto-generated SPL queries</span></div>
+                </div>
+              </div>
+              <div class="dl-chat-feed" id="chatFeed" style="display:none;"></div>
+              <div class="dl-input-area">
+                <div class="dl-input-wrapper">
+                  <textarea id="questionInput" class="dl-input"
+                    placeholder="Ask about your application... 'Why are my APIs slow?'" rows="1"></textarea>
+                  <div class="dl-input-controls">
+                    <span class="dl-input-hint">Enter to investigate &middot; Shift+Enter for newline</span>
+                    <button class="dl-send-btn" id="sendBtn" onclick="investigate()">
+                      <span>&#9654;</span> Investigate
+                    </button>
+                  </div>
+                </div>
+                <div class="dl-input-meta">
+                  <span class="dl-powered-by">Powered by <strong>Splunk Hosted Models</strong> + <strong>MCP Server</strong></span>
+                  <span>Index: <code id="currentIndex">*</code> &middot; Range: <code id="currentRange">-1h</code></span>
+                </div>
+              </div>
+            </main>
+
+          </div><!-- .dl-layout -->
+
+        </div><!-- #devlens-root -->
+
+        <!-- Message templates -->
+        <template id="userMsgTemplate">
+          <div class="dl-msg dl-msg-user">
+            <div class="dl-msg-avatar dl-avatar-user">You</div>
+            <div class="dl-msg-content">
+              <div class="dl-msg-text"></div>
+              <div class="dl-msg-meta"></div>
+            </div>
+          </div>
+        </template>
+
+        <template id="agentMsgTemplate">
+          <div class="dl-msg dl-msg-agent">
+            <div class="dl-msg-avatar dl-avatar-agent">&#128301;</div>
+            <div class="dl-msg-content">
+              <div class="dl-msg-text"></div>
+              <div class="dl-msg-evidence" style="display:none;"></div>
+              <div class="dl-msg-queries" style="display:none;"></div>
+              <div class="dl-msg-recommendations" style="display:none;"></div>
+              <div class="dl-msg-monitor-spl" style="display:none;"></div>
+              <div class="dl-msg-meta"></div>
+            </div>
+          </div>
+        </template>
+      </html>
+    </panel>
+  </row>
+
+  <!-- Supporting metrics row (secondary context) -->
+  <row>
+    <panel>
+      <title>Error Rate — Last 1h (by Service)</title>
+      <chart>
+        <search>
+          <query>
+            | inputlookup devlens_access_logs.csv
+            | eval _time=strptime(_time, "%Y-%m-%dT%H:%M:%S.%3NZ")
+            | where _time > relative_time(now(), "-1h")
+            | stats count as total, count(eval(status>=500)) as errors by service
+            | eval error_pct=round(errors/total*100,2)
+            | sort -error_pct
+          </query>
+          <earliest>-1h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="charting.chart">bar</option>
+        <option name="charting.chart.showDataLabels">all</option>
+        <option name="charting.axisY.title">Error Rate (%)</option>
+        <option name="charting.chart.nullValueMode">zero</option>
+        <option name="charting.legend.placement">bottom</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.seriesColors">["#f85149","#e3b341","#65a637","#58a6ff"]</option>
+      </chart>
+    </panel>
+
+    <panel>
+      <title>P99 Latency — Last 1h (by Service)</title>
+      <chart>
+        <search>
+          <query>
+            | inputlookup devlens_access_logs.csv
+            | eval _time=strptime(_time, "%Y-%m-%dT%H:%M:%S.%3NZ")
+            | where _time > relative_time(now(), "-1h")
+            | stats p99(response_time_ms) as p99_ms by service
+            | sort -p99_ms
+          </query>
+          <earliest>-1h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="charting.chart">bar</option>
+        <option name="charting.chart.showDataLabels">all</option>
+        <option name="charting.axisY.title">P99 Latency (ms)</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.seriesColors">["#58a6ff","#bc8cff","#65a637","#e3b341"]</option>
+      </chart>
+    </panel>
+
+    <panel>
+      <title>Request Volume — Last 1h (5m buckets)</title>
+      <chart>
+        <search>
+          <query>
+            | inputlookup devlens_access_logs.csv
+            | eval _time=strptime(_time, "%Y-%m-%dT%H:%M:%S.%3NZ")
+            | where _time > relative_time(now(), "-1h")
+            | timechart span=5m count as requests by service limit=5
+          </query>
+          <earliest>-1h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="charting.chart">area</option>
+        <option name="charting.chart.stackMode">stacked</option>
+        <option name="charting.axisY.title">Requests / 5min</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.legend.placement">bottom</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- Deployment context row -->
+  <row>
+    <panel>
+      <title>Recent Deployments</title>
+      <table>
+        <search>
+          <query>
+            | inputlookup devlens_deployments.csv
+            | eval deploy_time=strftime(strptime(_time, "%Y-%m-%dT%H:%M:%SZ"), "%Y-%m-%d %H:%M UTC")
+            | table deploy_time, service, version, previous_version, status, deployed_by, environment
+            | sort -deploy_time
+          </query>
+          <earliest>-24h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="count">5</option>
+        <format type="color" field="status">
+          <colorPalette type="map">{"success": "#3fb950", "failed": "#f85149", "rollback": "#e3b341"}</colorPalette>
+        </format>
+      </table>
+    </panel>
+
+    <panel>
+      <title>Top Error Messages — Last 1h</title>
+      <table>
+        <search>
+          <query>
+            | inputlookup devlens_access_logs.csv
+            | eval _time=strptime(_time, "%Y-%m-%dT%H:%M:%S.%3NZ")
+            | where _time > relative_time(now(), "-1h") AND error_message!=""
+            | stats count as occurrences, dc(user_id) as users_hit by error_message, service
+            | sort -occurrences
+            | head 10
+          </query>
+          <earliest>-1h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="count">8</option>
+      </table>
+    </panel>
+  </row>
+
+</form>
