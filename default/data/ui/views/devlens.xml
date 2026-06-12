@@ -99,7 +99,7 @@
                   <textarea id="questionInput" class="dl-input"
                     placeholder="Ask about your application... 'Why are my APIs slow?'" rows="1"></textarea>
                   <div class="dl-input-controls">
-                    <span class="dl-input-hint">Enter to investigate &middot; Shift+Enter for newline</span>
+                    <span class="dl-input-hint">Enter to investigate &#183; Shift+Enter for newline</span>
                     <button class="dl-send-btn" id="sendBtn" onclick="investigate()">
                       <span>&#9654;</span> Investigate
                     </button>
@@ -107,7 +107,7 @@
                 </div>
                 <div class="dl-input-meta">
                   <span class="dl-powered-by">Powered by <strong>Splunk Hosted Models</strong> + <strong>MCP Server</strong></span>
-                  <span>Index: <code id="currentIndex">*</code> &middot; Range: <code id="currentRange">-1h</code></span>
+                  <span>Index: <code id="currentIndex">*</code> &#183; Range: <code id="currentRange">-1h</code></span>
                 </div>
               </div>
             </main>

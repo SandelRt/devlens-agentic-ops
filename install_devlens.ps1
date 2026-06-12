@@ -1,6 +1,13 @@
-# DevLens Install Script — Run as Administrator
-# Right-click this file > Run as Administrator
-# Or: Open PowerShell as Admin, then run: .\install_devlens.ps1
+# DevLens Install Script
+# This script will automatically prompt for Administrator privileges if needed.
+
+# --- Self-Elevation Logic ---
+if (-Not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+    Write-Host "Elevating privileges to Administrator..." -ForegroundColor Yellow
+    Start-Process PowerShell -Verb RunAs -ArgumentList "-NoProfile -ExecutionPolicy Bypass -WindowStyle Normal -File `"$PSCommandPath`""
+    exit
+}
+# --------------------------
 
 $ErrorActionPreference = "Stop"
 $SRC  = "C:\Users\user\Desktop\Web Agency\devlens"

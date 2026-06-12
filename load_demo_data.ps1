@@ -1,7 +1,14 @@
 # DevLens Demo Data Loader
 # Run AFTER install_devlens.ps1
 # Loads the synthetic observability CSV files into Splunk
-# Run as Administrator
+
+# --- Self-Elevation Logic ---
+if (-Not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+    Write-Host "Elevating privileges to Administrator..." -ForegroundColor Yellow
+    Start-Process PowerShell -Verb RunAs -ArgumentList "-NoProfile -ExecutionPolicy Bypass -WindowStyle Normal -File `"$PSCommandPath`""
+    exit
+}
+# --------------------------
 
 $SPLUNK_BIN  = "C:\Program Files\Splunk\bin\splunk.exe"
 $DATA_DIR    = "C:\Users\user\Desktop\Web Agency\devlens\data"
