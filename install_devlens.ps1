@@ -48,14 +48,25 @@ if (Test-Path $DEST) {
 Write-Host "[*] Installing DevLens to: $DEST" -ForegroundColor Yellow
 Copy-Item $SRC $DEST -Recurse -Force
 
-# Don't copy the data/ folder (demo CSVs) — too large for app dir
-$dataDir = "$DEST\data"
-if (Test-Path $dataDir) {
-    Remove-Item $dataDir -Recurse -Force
-    Write-Host "    [INFO] Skipped data/ folder (load CSVs into Splunk separately)"
+# 5. Copy the data files directly into Splunk's lookups folder so they work immediately!
+$lookupsDir = "$DEST\lookups"
+if (-not (Test-Path $lookupsDir)) {
+    New-Item -ItemType Directory -Path $lookupsDir | Out-Null
 }
 
-Write-Host "[OK] App files copied" -ForegroundColor Green
+$DATA_DIR = "$SRC\data"
+Write-Host "[*] Copying demo data into Splunk lookups..." -ForegroundColor Yellow
+if (Test-Path "$DATA_DIR\access_logs.csv") {
+    Copy-Item "$DATA_DIR\access_logs.csv" "$lookupsDir\devlens_access_logs.csv" -Force
+}
+if (Test-Path "$DATA_DIR\deployment_events.csv") {
+    Copy-Item "$DATA_DIR\deployment_events.csv" "$lookupsDir\devlens_deployments.csv" -Force
+}
+if (Test-Path "$DATA_DIR\infrastructure_metrics.csv") {
+    Copy-Item "$DATA_DIR\infrastructure_metrics.csv" "$lookupsDir\devlens_metrics.csv" -Force
+}
+
+Write-Host "[OK] App and data files copied successfully" -ForegroundColor Green
 
 # 5. Restart Splunk to load the new app
 Write-Host ""
@@ -80,3 +91,7 @@ if ($LASTEXITCODE -eq 0) {
     Write-Host "[ERROR] Splunk restart failed (exit code $LASTEXITCODE)" -ForegroundColor Red
     Write-Host "        Try manually: & '$SPLUNK_BIN' restart"
 }
+
+Write-Host ""
+Write-Host "Press Enter to close this window..." -ForegroundColor Yellow
+Read-Host
