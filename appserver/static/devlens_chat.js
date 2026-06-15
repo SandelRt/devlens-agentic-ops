@@ -51,19 +51,28 @@ const dom = {
 // ---------------------------------------------------------------------------
 // Init
 // ---------------------------------------------------------------------------
-document.addEventListener('DOMContentLoaded', () => {
+function init() {
   setupTextarea();
   setupTimeButtons();
   setupKeyboardShortcuts();
 
   // Update index display
-  dom.currentIndex.textContent = state.currentIndex;
+  if (dom.currentIndex) {
+      dom.currentIndex.textContent = state.currentIndex;
+  }
 
   // Check connection in non-demo mode
   if (!CONFIG.DEMO_MODE) {
     checkSplunkConnection();
   }
-});
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  // Splunk often loads scripts asynchronously after the DOM is ready
+  setTimeout(init, 500); // Small delay to ensure the XML panel is rendered
+}
 
 // ---------------------------------------------------------------------------
 // Main investigation flow
@@ -587,3 +596,7 @@ async function copyToClipboard(text, btn) {
     console.error('Copy failed:', e);
   }
 }
+
+// Export to window for Splunk Simple XML inline onclick handlers
+window.investigate = investigate;
+window.prefillQuestion = prefillQuestion;
