@@ -153,12 +153,12 @@
           <query>
             | inputlookup devlens_access_logs.csv
             | eval _time=strptime(_time, "%Y-%m-%dT%H:%M:%S.%3NZ")
-            | where _time > relative_time(now(), "-1h")
+            | where _time > relative_time(now(), "-7d")
             | stats count as total, count(eval(status>=500)) as errors by service
             | eval error_pct=round(errors/total*100,2)
             | sort -error_pct
           </query>
-          <earliest>-1h</earliest>
+          <earliest>-7d</earliest>
           <latest>now</latest>
         </search>
         <option name="charting.chart">bar</option>
@@ -178,11 +178,11 @@
           <query>
             | inputlookup devlens_access_logs.csv
             | eval _time=strptime(_time, "%Y-%m-%dT%H:%M:%S.%3NZ")
-            | where _time > relative_time(now(), "-1h")
+            | where _time > relative_time(now(), "-7d")
             | stats p99(response_time_ms) as p99_ms by service
             | sort -p99_ms
           </query>
-          <earliest>-1h</earliest>
+          <earliest>-7d</earliest>
           <latest>now</latest>
         </search>
         <option name="charting.chart">bar</option>
@@ -200,10 +200,10 @@
           <query>
             | inputlookup devlens_access_logs.csv
             | eval _time=strptime(_time, "%Y-%m-%dT%H:%M:%S.%3NZ")
-            | where _time > relative_time(now(), "-1h")
+            | where _time > relative_time(now(), "-7d")
             | timechart span=5m count as requests by service limit=5
           </query>
-          <earliest>-1h</earliest>
+          <earliest>-7d</earliest>
           <latest>now</latest>
         </search>
         <option name="charting.chart">area</option>
@@ -245,12 +245,12 @@
           <query>
             | inputlookup devlens_access_logs.csv
             | eval _time=strptime(_time, "%Y-%m-%dT%H:%M:%S.%3NZ")
-            | where _time > relative_time(now(), "-1h") AND error_message!=""
+            | where _time > relative_time(now(), "-7d") AND error_message!=""
             | stats count as occurrences, dc(user_id) as users_hit by error_message, service
             | sort -occurrences
             | head 10
           </query>
-          <earliest>-1h</earliest>
+          <earliest>-7d</earliest>
           <latest>now</latest>
         </search>
         <option name="drilldown">none</option>
