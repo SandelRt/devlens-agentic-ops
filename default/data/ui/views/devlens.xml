@@ -163,7 +163,7 @@
         </search>
         <option name="charting.chart">bar</option>
         <option name="charting.chart.showDataLabels">all</option>
-        <option name="charting.axisY.title">Error Rate (%)</option>
+        <option name="charting.axisTitleY.text">Error Rate (%)</option>
         <option name="charting.chart.nullValueMode">zero</option>
         <option name="charting.legend.placement">bottom</option>
         <option name="charting.drilldown">none</option>
@@ -187,7 +187,7 @@
         </search>
         <option name="charting.chart">bar</option>
         <option name="charting.chart.showDataLabels">all</option>
-        <option name="charting.axisY.title">P99 Latency (ms)</option>
+        <option name="charting.axisTitleY.text">P99 Latency (ms)</option>
         <option name="charting.drilldown">none</option>
         <option name="charting.seriesColors">["#58a6ff","#bc8cff","#65a637","#e3b341"]</option>
       </chart>
@@ -208,7 +208,7 @@
         </search>
         <option name="charting.chart">area</option>
         <option name="charting.chart.stackMode">stacked</option>
-        <option name="charting.axisY.title">Requests / 5min</option>
+        <option name="charting.axisTitleY.text">Requests / 5min</option>
         <option name="charting.drilldown">none</option>
         <option name="charting.legend.placement">bottom</option>
       </chart>
