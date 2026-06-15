@@ -67,11 +67,18 @@ function init() {
   }
 }
 
+function waitForDOM() {
+  if (document.getElementById('questionInput')) {
+    init();
+  } else {
+    setTimeout(waitForDOM, 200); // Check again in 200ms
+  }
+}
+
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', init);
+  document.addEventListener('DOMContentLoaded', waitForDOM);
 } else {
-  // Splunk often loads scripts asynchronously after the DOM is ready
-  setTimeout(init, 500); // Small delay to ensure the XML panel is rendered
+  waitForDOM();
 }
 
 // ---------------------------------------------------------------------------
