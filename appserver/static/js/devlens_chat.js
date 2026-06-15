@@ -20,7 +20,7 @@ const CONFIG = {
   // In Splunk, this points to the custom REST handler
   // For standalone demo, we mock the response
   API_ENDPOINT: '/en-US/splunkd/__raw/services/devlens/investigate',
-  DEMO_MODE: false,  // true = canned responses (standalone preview) | false = live Splunk REST API
+  DEMO_MODE: true,  // true = canned responses (standalone preview) | false = live Splunk REST API
   DEFAULT_TIMERANGE: '-1h',
   DEFAULT_INDEX: '*',
   TYPING_DELAY: 80,  // ms between chars in simulated typing
